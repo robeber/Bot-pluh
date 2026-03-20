@@ -1,0 +1,54 @@
+import requests
+import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Set in your .env file
+
+def send_message(message: str, interval: float = 1.0, limit: int = None):
+    """
+    Send a message repeatedly via webhook until stopped.
+
+    Args:
+        message:  The message to send
+        interval: Seconds between each message (default: 0.5)
+        limit:    Max number of messages to send (None = run until Ctrl+C)
+    """
+    count = 0
+    print(f"Sending messages every {interval}s. Press Ctrl+C to stop.\n")
+
+    try:
+        while True:
+            if limit and count >= limit:
+                print(f"\nReached limit of {limit} messages.")
+                break
+
+            payload = {"content": message}
+            response = requests.post(WEBHOOK_URL, json=payload)
+
+            if response.status_code == 204:
+                count += 1
+                print(f"[{count}] Sent: {message}")
+            elif response.status_code == 429:
+                # Rate limited — back off
+                retry_after = response.json().get("retry_after", 1)
+                print(f"Rate limited. Waiting {retry_after}s...")
+                time.sleep(retry_after)
+                continue
+            else:
+                print(f"Error {response.status_code}: {response.text}")
+
+            time.sleep(interval)
+
+    except KeyboardInterrupt:
+        print(f"\nStopped. Total messages sent: {count}")
+
+
+if __name__ == "__main__":
+    MESSAGE  = "your message here"   # Change this
+    INTERVAL = 0.5                   # Seconds between messages
+    LIMIT    = None                  # Set a number to auto-stop, or leave None
+
+    send_message(MESSAGE, INTERVAL, LIMIT)
