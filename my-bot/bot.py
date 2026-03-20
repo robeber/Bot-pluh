@@ -8,7 +8,7 @@ import os
 
 load_dotenv()
 
-TOKEN = os.getenv("MTQzOTg5NTAzMTA4NjMyMTczOA.GcHUFz.w3U4BgyQ-nWUcgTfeZB5x6KRONIR2A6PDhaU-k")
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 bot = discord.Client(intents=intents)
